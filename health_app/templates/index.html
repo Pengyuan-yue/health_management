@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>欢迎来到健康管理系统</h1>
+
+{% if user.is_authenticated %}
+  <p>您好，{{ user.username }}！</p>
+
+  <!-- 显示最近的健康数据 -->
+  <h3>您最近的健康数据：</h3>
+  {% if latest_health_data %}
+    <ul>
+      <li>日期：{{ latest_health_data.date }}</li>
+      <li>体重：{{ latest_health_data.weight }} kg</li>
+      <!--  其他数据项  -->
+    </ul>
+  {% else %}
+    <p>您还没有记录任何健康数据。</p>
+  {% endif %}
+
+  <!-- 提供数据录入入口 -->
+  <a href="{% url 'data' %}" class="btn btn-primary">录入健康数据</a>
+
+{% else %}
+  <p>请登录或注册，开始管理您的健康！</p>
+  <a href="{% url 'login' %}" class="btn btn-primary">登录</a>
+  <a href="{% url 'register' %}" class="btn btn-secondary">注册</a>
+{% endif %}
+
+{% endblock %}

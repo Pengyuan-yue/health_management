@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>健康数据</h2>
+
+<!-- 数据录入表单 -->
+<h3>录入新数据</h3>
+<form method="post">
+  {% csrf_token %}
+  {{ data_form.as_p }}
+  <button type="submit" class="btn btn-primary">提交数据</button>
+</form>
+
+<!-- 数据展示区域，可以使用表格、图表等方式展示 -->
+<h3>历史数据</h3>
+
+<div id="data-visualization">
+  <!-- 这里可以使用 Chart.js 创建图表 -->
+  <canvas id="weightChart"></canvas>
+  <canvas id="bloodPressureChart"></canvas>
+  <canvas id="bloodSugarChart"></canvas>
+  <canvas id="stepsChart"></canvas>
+  <canvas id="heartRateChart"></canvas>
+  <canvas id="healthEvaluationChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // 创建体重图表
+  const ctxWeight = document.getElementById('weightChart').getContext('2d');
+  const weightChart = new Chart(ctxWeight, {
+    type: 'line',
+    data: {
+      labels: [{% for data in health_data %}"{{ data.date }}", {% endfor %}],
+      datasets: [{
+        label: '体重 (公斤)',
+        data: [{% for data in health_data %}{{ data.weight }}, {% endfor %}],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // 创建血压图表
+  const ctxBloodPressure = document.getElementById('bloodPressureChart').getContext('2d');
+  const bloodPressureChart = new Chart(ctxBloodPressure, {
+    type: 'line',
+    data: {
+      labels: [{% for data in health_data %}"{{ data.date }}", {% endfor %}],
+      datasets: [{
+        label: '收缩压',
+        data: [{% for data in health_data %}{{ data.blood_pressure_sys }}, {% endfor %}],
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+      }, {
+        label: '舒张压',
+        data: [{% for data in health_data %}{{ data.blood_pressure_dia }}, {% endfor %}],
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // 创建血糖图表
+  const ctxBloodSugar = document.getElementById('bloodSugarChart').getContext('2d');
+  const bloodSugarChart = new Chart(ctxBloodSugar, {
+    type: 'line',
+    data: {
+      labels: [{% for data in health_data %}"{{ data.date }}", {% endfor %}],
+      datasets: [{
+        label: '血糖 (mmol/L)',
+        data: [{% for data in health_data %}{{ data.blood_sugar }}, {% endfor %}],
+        borderColor: 'rgba(255, 206, 86, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // 创建步数图表
+  const ctxSteps = document.getElementById('stepsChart').getContext('2d');
+  const stepsChart = new Chart(ctxSteps, {
+    type: 'line',
+    data: {
+      labels: [{% for data in health_data %}"{{ data.date }}", {% endfor %}],
+      datasets: [{
+        label: '步数',
+        data: [{% for data in health_data %}{{ data.steps }}, {% endfor %}],
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // 创建心率图表
+  const ctxHeartRate = document.getElementById('heartRateChart').getContext('2d');
+  const heartRateChart = new Chart(ctxHeartRate, {
+    type: 'line',
+    data: {
+      labels: [{% for data in health_data %}"{{ data.date }}", {% endfor %}],
+      datasets: [{
+        label: '心率',
+        data: [{% for data in health_data %}{{ data.heart_rate }}, {% endfor %}],
+        borderColor: 'rgba(201, 203, 207, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // 创建总体健康评估图表 (雷达图)
+  const ctxHealthEvaluation = document.getElementById('healthEvaluationChart').getContext('2d');
+  const healthEvaluationChart = new Chart(ctxHealthEvaluation, {
+    type: 'radar',
+    data: {
+      labels: ['体重', '血压', '血糖', '步数', '心率'],
+      datasets: [{
+        label: '健康评估',
+        data: [
+          {{ health_scores.weight }}, // 使用实际计算的评分
+          {{ health_scores.blood_pressure }},
+          {{ health_scores.blood_sugar }},
+          {{ health_scores.steps }},
+          {{ health_scores.heart_rate }},
+        ],
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        r: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+
+{% endblock %}
