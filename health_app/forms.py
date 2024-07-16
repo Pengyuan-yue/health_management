@@ -9,6 +9,7 @@ class UserProfileForm(forms.ModelForm):
             'birth_date': forms.DateInput(attrs={'type': 'date'}),
             'medical_history': forms.Textarea(attrs={'rows': 3}),
         }
+        # 将表单字段名改为中文
         labels = {
             'birth_date': '出生日期',
             'height': '身高 (米)',
@@ -25,6 +26,7 @@ class HealthDataForm(forms.ModelForm):
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
+        # 将表单字段名改为中文
         labels = {
             'date': '日期',
             'weight': '体重 (公斤)',

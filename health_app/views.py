@@ -33,6 +33,7 @@ def profile(request):
 
 @login_required
 def data(request):
+    health_scores = None
     health_data = HealthData.objects.filter(user=request.user).order_by('-date')
     if request.method == 'POST':
         form = HealthDataForm(request.POST)
@@ -43,7 +44,7 @@ def data(request):
 
             # 设置 Cookie
             response = redirect('data')
-            response.set_cookie('last_date', new_data.date.strftime('%Y/%m/%d'))
+            response.set_cookie('last_date', new_data.date.strftime('%Y-%m-%d'))
             response.set_cookie('last_weight', new_data.weight)
             response.set_cookie('last_blood_pressure_sys', new_data.blood_pressure_sys)
             response.set_cookie('last_blood_pressure_dia', new_data.blood_pressure_dia)
@@ -65,32 +66,34 @@ def data(request):
         }
         form = HealthDataForm(request.POST or None, initial=initial_data)
 
-        # 健康评估和提示
-        if request.user.is_authenticated:
-            latest_health_data = HealthData.objects.filter(user=request.user).order_by('-date').first()
-            if latest_health_data:
-                user_profile = request.user.userprofile  # 获取用户个人信息
-                if user_profile.height is None:
-                    form.add_error(None, "请先填写您的身高信息才能进行健康评估。")
+        #  注意： 将 form.add_error 移到 if form.is_valid(): 代码块内部
+        if form.is_valid():
+            # 健康评估和提示
+            if request.user.is_authenticated:
+                latest_health_data = HealthData.objects.filter(user=request.user).order_by('-date').first()
+                if latest_health_data:
+                    user_profile = request.user.userprofile  # 获取用户个人信息
+                    if user_profile.height is None:
+                        form.add_error(None, "请先填写您的身高信息才能进行健康评估。")
+                    else:
+                        health_scores = {
+                            'weight': calculate_weight_score(latest_health_data.weight, user_profile.height),
+                            'blood_pressure': calculate_blood_pressure_score(latest_health_data.blood_pressure_sys,
+                                                                             latest_health_data.blood_pressure_dia),
+                            'blood_sugar': calculate_blood_sugar_score(latest_health_data.blood_sugar),
+                            'steps': calculate_steps_score(latest_health_data.steps),
+                            'heart_rate': calculate_heart_rate_score(latest_health_data.heart_rate),
+                        }
+                        if latest_health_data.blood_sugar > 11.1:
+                            form.add_error(None, '您的血糖值偏高，请注意饮食和运动。')
+                        # 添加血压评估
+                        if latest_health_data.blood_pressure_sys is not None and latest_health_data.blood_pressure_dia is not None:
+                            if latest_health_data.blood_pressure_sys > 140 or latest_health_data.blood_pressure_dia > 90:
+                                form.add_error(None, '您的血压值偏高，建议您及时就医。')
                 else:
-                    health_scores = {
-                        'weight': calculate_weight_score(latest_health_data.weight, user_profile.height),
-                        'blood_pressure': calculate_blood_pressure_score(latest_health_data.blood_pressure_sys,
-                                                                         latest_health_data.blood_pressure_dia),
-                        'blood_sugar': calculate_blood_sugar_score(latest_health_data.blood_sugar),
-                        'steps': calculate_steps_score(latest_health_data.steps),
-                        'heart_rate': calculate_heart_rate_score(latest_health_data.heart_rate),
-                    }
-                    if latest_health_data.blood_sugar > 11.1:
-                        form.add_error(None, '您的血糖值偏高，请注意饮食和运动。')
-                    # 添加血压评估
-                    if latest_health_data.blood_pressure_sys is not None and latest_health_data.blood_pressure_dia is not None:
-                        if latest_health_data.blood_pressure_sys > 140 or latest_health_data.blood_pressure_dia > 90:
-                            form.add_error(None, '您的血压值偏高，建议您及时就医。')
+                    health_scores = None
             else:
                 health_scores = None
-        else:
-            health_scores = None
 
     return render(request, 'data.html', {'data_form': form, 'health_data': health_data, 'health_scores': health_scores})
 
