@@ -4,12 +4,14 @@ from .models import UserProfile, HealthData
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
+        # 指定要排除的字段
+        exclude = ('user',)
+        # 添加 birth_date 到 fields 属性
         fields = ['birth_date', 'height', 'weight', 'gender', 'phone_number', 'medical_history']
         widgets = {
             'birth_date': forms.DateInput(attrs={'type': 'date'}),
             'medical_history': forms.Textarea(attrs={'rows': 3}),
         }
-        # 将表单字段名改为中文
         labels = {
             'birth_date': '出生日期',
             'height': '身高 (米)',
@@ -26,7 +28,6 @@ class HealthDataForm(forms.ModelForm):
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
-        # 将表单字段名改为中文
         labels = {
             'date': '日期',
             'weight': '体重 (公斤)',

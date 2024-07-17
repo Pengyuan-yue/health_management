@@ -5,7 +5,7 @@ class UserProfile(models.Model):
     """
     用户个人信息模型
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  #  修改： 添加了 blank=True
     birth_date = models.DateField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)  # 单位：米
     weight = models.FloatField(null=True, blank=True)  # 单位：公斤
